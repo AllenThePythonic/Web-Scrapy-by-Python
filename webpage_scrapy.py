@@ -1,6 +1,9 @@
 from urllib.request import urlopen
 from urllib.error import HTTPError
 from bs4 import BeautifulSoup
+import re
+import random
+import datetime
 
 
 def getNames():
@@ -35,14 +38,12 @@ def getNames():
                     print("Tag was not found")
                 else:
                     #  Get All names excepts "the prince" and "The prince"
-
                     resultList = list(
                         filter(lambda x: x.get_text() not in "the prince"
                                and x.get_text() not in "The prince", content))
                     print([name.get_text() for name in resultList])
 
                     # get Total no. of "the prince "
-
                     princeList = bsObj.findAll("", {"id": "text"})
 
                     print(
@@ -68,8 +69,79 @@ def getTableElement():
     for sibling in bsObj.find("table", {"id": "giftList"}).tr.next_siblings:
         print(sibling)
 
+    print("Select the specified item and price ")
+
+    # 1. The image tag where src="../img/gifts/img2.jpg" is first selected
+    # 2. We select the parent of that tag (in this case, the <td> tag).
+    # 3. We select the previous_sibling of the <td> tag (in this case,
+    #    the <td> tag that
+    # contains the dollar value of the product).
+    # 4. We select the text within that tag, “$10,000.52”
+
     print(bsObj.find("img", {"src": "../img/gifts/img2.jpg"}) .parent.previous_sibling.previous_sibling.previous_sibling.get_text()
           + "Price :  "
           + bsObj.find("img", {"src": "../img/gifts/img2.jpg"}).parent.previous_sibling.get_text())
+
+
+def getContentByRegularExpression():
+
+    # Initialise the BeautifulSoup
+
+    html = urlopen("http://www.pythonscraping.com/pages/page3.html")
+    bsObj = BeautifulSoup(html, "html.parser")
+
+    # == myImgTag.attrs['src']
+    images = bsObj.findAll(
+        "img", {"src": re.compile("\.\.\/img\/gifts/img.*\.jpg")})
+    for image in images:
+        print(image["src"])
+
+
+def getAllAttributesByLambdaExp():
+     # Initialise the BeautifulSoup
+
+    html = urlopen("http://www.pythonscraping.com/pages/page3.html")
+    bsObj = BeautifulSoup(html, "html.parser")
+
+    # Get all attrs from all tag
+    print(bsObj.findAll(lambda tag: print(tag.attrs)))
+
+
+def traverSingleDomain():
+    # Initialise the BeautifulSoup
+    html = urlopen("http://en.wikipedia.org/wiki/Kevin_Bacon")
+    bsObj = BeautifulSoup(html, "html.parser")
+
+    # Find all a-href on entire page
+    # for link in bsObj.findAll("a"):
+    #     if 'href' in link.attrs:
+    #         print(link.attrs['href'])
+
+    for link in bsObj.find("div", {"id": "bodyContent"}).findAll("a", href=re.compile("^(/wiki/)((?!:).)*$")):
+        if 'href' in link.attrs:
+            print(link.attrs['href'])
+
+
+# Dynamically find URL and Second Layer Pages
+def getLinks(articleUrl):
+    html = urlopen("http://en.wikipedia.org" + articleUrl)
+    bsObj = BeautifulSoup(html, "html.parser")
+    return bsObj.find("div", {"id": "bodyContent"}).findAll("a", href=re.compile("^(/wiki/)((?!:).)*$"))
+
+
+def traverSingleDomain2():
+    random.seed(datetime.datetime.now())
+    links = getLinks("/wiki/Kevin_Bacon")
+    while len(links) > 0:
+        newArticle = links[random.randint(0, len(links) - 1)].attrs["href"]
+        print(newArticle)
+        links = getLinks(newArticle)
+
 if __name__ == '__main__':
-    getTableElement()
+    # getNames()
+    # getTableElement()
+    # getContentByRegularExpression()
+    # getAllAttributesByLambdaExp()
+
+    # traverSingleDomain()
+    traverSingleDomain2()
