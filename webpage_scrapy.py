@@ -122,13 +122,6 @@ def traverSingleDomain():
             print(link.attrs['href'])
 
 
-# Dynamically find URL and Second Layer Pages
-def getLinks(articleUrl):
-    html = urlopen("http://en.wikipedia.org" + articleUrl)
-    bsObj = BeautifulSoup(html, "html.parser")
-    return bsObj.find("div", {"id": "bodyContent"}).findAll("a", href=re.compile("^(/wiki/)((?!:).)*$"))
-
-
 def traverSingleDomain2():
     random.seed(datetime.datetime.now())
     links = getLinks("/wiki/Kevin_Bacon")
@@ -136,6 +129,13 @@ def traverSingleDomain2():
         newArticle = links[random.randint(0, len(links) - 1)].attrs["href"]
         print(newArticle)
         links = getLinks(newArticle)
+
+
+def getLinks(articleUrl):
+    html = urlopen("http://en.wikipedia.org" + articleUrl)
+    bsObj = BeautifulSoup(html, "html.parser")
+    return bsObj.find("div", {"id": "bodyContent"}).findAll("a", href=re.compile("^(/wiki/)((?!:).)*$"))
+
 
 if __name__ == '__main__':
     # getNames()
