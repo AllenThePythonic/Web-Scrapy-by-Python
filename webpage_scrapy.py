@@ -1,5 +1,6 @@
 from urllib.request import urlopen
 from urllib.error import HTTPError
+from urllib import request as urlrequest
 from bs4 import BeautifulSoup
 import re
 import random
@@ -136,19 +137,44 @@ def getLinks(articleUrl):
     bsObj = BeautifulSoup(html, "html.parser")
     return bsObj.find("div", {"id": "bodyContent"}).findAll("a", href=re.compile("^(/wiki/)((?!:).)*$"))
 
+# Recursion Method for capturing all the href and access to the page
+pages = set()
+
 
 def crawlEntireSite(pageUrl):
-    pages = set()
-    html = urlopen("http://en.wikipedia.org" + pageUrl)
+
+    global pages
+    html = urlopen(pageUrl)
+    print("Process : " + pageUrl + "\n\n")
+
     bsObj = BeautifulSoup(html, "html.parser")
-    for link in bsObj.findAll("a", href=re.compile("^(/wiki/)")):
+    for link in bsObj.findAll("a", href=re.compile("(http.*\.html)")):
         if 'href' in link.attrs:
             if link.attrs['href'] not in pages:
-                # We have encountered a new page
-                newPage = link.attrs['href']
-                print(newPage)
-                pages.add(newPage)
-                getLinks(newPage)
+
+                try:
+                    newPage = link.attrs['href']
+                    print("Next : " + newPage + "\n\n")
+                    pages.add(newPage)
+                    crawlEntireSite(newPage)
+                except Exception as e:
+                    print(e)
+
+
+# def proxy():
+# proxy_host = '202.100.167.143:80'    # host and port of your proxy
+#     url = 'http://gmdwith.us/'
+#     req = urlrequest.Request(url)
+#     req.set_proxy(proxy_host, 'http')
+#     response = urlrequest.urlopen(req)
+#     print(response.read())
+
+
+def fact(n):
+    if n == 0:
+        return 1
+    else:
+        return n * fact(n - 1)
 
 
 if __name__ == '__main__':
@@ -156,8 +182,10 @@ if __name__ == '__main__':
     # getNames()
     # getTableElement()
     # getContentByRegularExpression()
-    # getAllAttributesByLambdaExp()
+    # getAllAttributesByLambdaExp()z
     # traverSingleDomain()
     # traverSingleDomain2()
-
-    crawlEntireSite("")
+    # crawlEntireSite("")
+    # print(fact(5))
+    crawlEntireSite(
+        "http://www.drugoffice.gov.hk/eps/do/en/consumer/home.html")
